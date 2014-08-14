@@ -1,0 +1,6 @@
+name TestLevel
+author Tinfoilboy
+
+current_sheet scenery
+wall 2 0 0 100 1 10 4.0f brick
+wall -2 0 0 100 1 10 4.0f brick
