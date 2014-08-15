@@ -114,6 +114,8 @@ public class AbstractRenderable implements Renderable
 	@Override
 	public void draw()
 	{
+		if (!this.hasTextures())
+			glDisable(GL_TEXTURE_2D);
 		glPushMatrix();
 		glTranslatef(position.getX(), position.getY(), position.getZ());
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -126,12 +128,14 @@ public class AbstractRenderable implements Renderable
 			glBindBuffer(GL_ARRAY_BUFFER, textureCoordinateID);
 			glTexCoordPointer(2, GL_FLOAT, 0, 0L);
 		}
-		glDrawArrays(GL_QUADS, 0, this.vertices.length * 3);
+		glDrawArrays(GL_TRIANGLES, 0, this.vertices.length * 3);
 		if (this.hasTextures())
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glPopMatrix();
+		if (!this.hasTextures())
+			glEnable(GL_TEXTURE_2D);
 	}
 
 	@Override

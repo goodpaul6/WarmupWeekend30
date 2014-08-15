@@ -1,10 +1,15 @@
 package com.tinfoilboy.warmupweekend;
 
+import com.tinfoilboy.warmupweekend.gameplay.Camera;
+import com.tinfoilboy.warmupweekend.gameplay.InputHandler;
 import com.tinfoilboy.warmupweekend.graphics.Cube;
+import com.tinfoilboy.warmupweekend.graphics.sprites.Sprite;
 import com.tinfoilboy.warmupweekend.graphics.sprites.SpriteSheet;
 import com.tinfoilboy.warmupweekend.levels.Level;
 import com.tinfoilboy.warmupweekend.levels.LevelParser;
 import com.tinfoilboy.warmupweekend.util.SpriteSheets;
+import com.tinfoilboy.warmupweekend.util.TextureCoordinate;
+import com.tinfoilboy.warmupweekend.util.Vertex;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -25,21 +30,23 @@ public class WarmupWeekend
 
 	private int width = 640, height = 480;
 
-	private volatile boolean running = true;
+	private float angle = 0.0f;
+
+	private static volatile boolean running = true;
 
 	private static WarmupWeekend instance = null;
 
-	private Cube cube;
-
-	private SpriteSheet spriteSheet;
-
 	private Level currentLevel = null;
+
+	public Camera camera = new Camera(60.0f, 0.1f, 1000.0f);
+
+	public InputHandler inputHandler;
 
 	public WarmupWeekend()
 	{
 		instance = this;
 		this.initDisplay();
-		this.initGL();
+		this.camera.create();
 		this.init();
 		this.gameLoop();
 	}
@@ -62,27 +69,17 @@ public class WarmupWeekend
 		}
 	}
 
-	private void initGL()
-	{
-		glMatrixMode(GL_PROJECTION);
-		glViewport(0, 0, width, height);
-		gluPerspective(45.0f, (float) width / (float) height, 0.1f, 1000.0f);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glTranslatef(0.0f, 0.0f, -150.0f);
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_DEPTH_TEST);
-	}
-
 	private void init()
 	{
 		try
 		{
+			this.inputHandler = new InputHandler();
 			SpriteSheets.addSpriteSheet("scenery", new SpriteSheet(256.0f, 256.0f, new File("assets/SpriteSheets/scenery.png"))
 					.addSprite("grass", new Vector2f(1.0f, 0.0f), 64.0f, 64.0f)
 					.addSprite("brick", new Vector2f(0.0f, 0.0f), 64.0f, 64.0f));
-
 			this.currentLevel = LevelParser.parseLevel(new File("assets/levels/test.level"));
+			this.camera.setPosition(this.currentLevel.spawnLocation);
+			this.camera.update();
 		} catch (IOException e)
 		{
 			e.printStackTrace();
@@ -111,11 +108,136 @@ public class WarmupWeekend
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		/*Vector3f sizes = new Vector3f(10.0f, 10.0f, 10.0f);
+
+		Vertex[] vertices = new Vertex[] {
+				// Front Face 1
+				new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				new Vertex(sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
+				// Front Face 2
+				new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
+				new Vertex(-sizes.getX(), sizes.getY(), -sizes.getZ()),
+				// Back Face 1
+				new Vertex(-sizes.getX(), -sizes.getY(), sizes.getZ()),
+				new Vertex(sizes.getX(), -sizes.getY(), sizes.getZ()),
+				new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
+				// Back Face 2
+				new Vertex(-sizes.getX(), -sizes.getY(), sizes.getZ()),
+				new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
+				new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
+				// Left Face 1
+				new Vertex(sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
+				new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
+				// Left Face 2
+				new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
+				new Vertex(sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				new Vertex(sizes.getX(), -sizes.getY(), sizes.getZ()),
+				// Right Face 1
+				new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				new Vertex(-sizes.getX(), sizes.getY(), -sizes.getZ()),
+				new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
+				// Right Face 2
+				new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
+				new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				new Vertex(-sizes.getX(), -sizes.getY(), sizes.getZ()),
+				// Top Face 1
+				new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
+				new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
+				new Vertex(-sizes.getX(), sizes.getY(), -sizes.getZ()),
+				// Top Face 2
+				new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
+				new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
+				new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
+				// Bottom Face 1
+				new Vertex(sizes.getX(), -sizes.getY(), sizes.getZ()),
+				new Vertex(-sizes.getX(), -sizes.getY(), sizes.getZ()),
+				new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				// Bottom Face 2
+				new Vertex(sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
+				new Vertex(sizes.getX(), -sizes.getY(), sizes.getZ())
+		};
+
+		Sprite tempSprite = SpriteSheets.getSpriteSheet("scenery").getSprite("brick");
+
+		TextureCoordinate[] coordinates = new TextureCoordinate[] {
+			// Front Face 1
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			// Front Face 2
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV()),
+			// Back Face 1
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			// Back Face 2
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV()),
+			// Right Face 1
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			// Right Face 2
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV1()),
+			// Right Face 1
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			// Right Face 2
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV1()),
+			// Top Face 1
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV()),
+			// Top Face 2
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV1()),
+			// Bottom Face 1
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			// Bottom Face 2
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU1(), tempSprite.getV1()),
+			new TextureCoordinate(tempSprite.getU(), tempSprite.getV())
+		};
+
+		angle += 0.01f;
+
+		glBindTexture(GL_TEXTURE_2D, SpriteSheets.getSpriteSheet("scenery").getSpriteSheetTexture().TEXTURE_ID);
+
+		// Cube Test Code
+		glTranslatef(-1.5f, 1.0f, -40.0f);
+		glRotatef(45.0f, 0.0f, -1.0f, 0.0f);
+		glBegin(GL_TRIANGLES);
+		for (int i = 0; i < vertices.length; i++)
+		{
+			Vertex vertex = vertices[i];
+			TextureCoordinate coordinate = coordinates[i];
+			glTexCoord2f(coordinate.getU(), coordinate.getV());
+			glVertex3f(vertex.getX(), vertex.getY(), vertex.getZ());
+		}
+		glEnd();*/
+
 		currentLevel.drawLevel();
 	}
 
 	private void update()
 	{
+		this.camera.update();
+
 		if (Display.isCloseRequested())
 		{
 			running = false;
@@ -123,12 +245,18 @@ public class WarmupWeekend
 
 		if (Display.wasResized())
 		{
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			glViewport(0, 0, Display.getWidth(), Display.getHeight());
-			gluPerspective(45.0f, (float) Display.getWidth() / (float) Display.getHeight(), 0.1f, 1000.0f);
-			glMatrixMode(GL_MODELVIEW);
+			this.camera.resize();
 		}
+	}
+
+	public static void stop()
+	{
+		running = false;
+	}
+
+	public static boolean isRunning()
+	{
+		return running;
 	}
 
 	public static WarmupWeekend getInstance()
