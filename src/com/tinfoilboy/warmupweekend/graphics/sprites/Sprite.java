@@ -55,7 +55,7 @@ public class Sprite
 
 	public float getU()
 	{
-		return (this.spritePos.getX() * this.WIDTH + 1.0f) / this.getSpriteSheet().getWidth();
+		return (this.spritePos.getX() * this.WIDTH + 2.0f) / this.getSpriteSheet().getWidth();
 	}
 
 	public float getU1()
@@ -65,7 +65,7 @@ public class Sprite
 
 	public float getV()
 	{
-		return (this.spritePos.getY() * this.HEIGHT - 1.0f) / this.getSpriteSheet().getHeight();
+		return (this.spritePos.getY() * this.HEIGHT) / this.getSpriteSheet().getHeight();
 	}
 
 	public float getV1()

@@ -2,6 +2,7 @@ package com.tinfoilboy.warmupweekend.graphics.sprites;
 
 import com.tinfoilboy.warmupweekend.util.Texture;
 import com.tinfoilboy.warmupweekend.util.TextureLoader;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.util.vector.Vector2f;
 import java.io.File;
 import java.io.IOException;

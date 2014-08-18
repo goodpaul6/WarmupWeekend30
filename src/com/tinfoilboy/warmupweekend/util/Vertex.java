@@ -47,4 +47,9 @@ public class Vertex
 		}
 		return newFloats;
 	}
+
+	public static float[] convertToFloatArray(Vertex vertex)
+	{
+		return new float[] { vertex.getX(), vertex.getY(), vertex.getZ() };
+	}
 }

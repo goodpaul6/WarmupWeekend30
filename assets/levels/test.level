@@ -6,10 +6,4 @@ author Tinfoilboy
 // Set the sprite sheet currently in use.
 current_sheet scenery
 // Set the bounds of this level to be the width, height, and length of 40, 40, and 40, bounding cube size, as well as a sprite to be used for bound cubes.
-set_level_bounds 40 40 40 4.0f brick
-// A wall for this level.
-// The parameters are as follows.
-// Starting X, Starting Y, Starting Z, Wall Length, Wall Width, Wall Height, Wall Cube Size, and the sprite name to be used from the current sprite sheet.
-wall 2 -4 0 80 1 40 4.0f brick
-// Another wall for this level.
-//wall -2 -4 0 80 1 40 4.0f brick
+set_level_bounds 50 50 50 4.0f brick

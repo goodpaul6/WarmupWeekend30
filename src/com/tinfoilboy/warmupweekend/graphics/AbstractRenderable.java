@@ -20,6 +20,12 @@ public class AbstractRenderable implements Renderable
 	protected Vertex[] vertices = null;
 
 	/**
+	 * The normals of this renderable object.
+	 * This is optional.
+	 */
+	protected Vertex[] normals = null;
+
+	/**
 	 * The texture coordinates of this renderable object.
 	 * Only set if we have a texture for this renderable object.
 	 */
@@ -29,6 +35,11 @@ public class AbstractRenderable implements Renderable
 	 * An ID for the vertices in OpenGL.
 	 */
 	protected int vertexID = 0;
+
+	/**
+	 * An ID for the normals in OpenGL.
+	 */
+	protected int normalID = 0;
 
 	/**
 	 * An ID for the texture coordinates in OpenGL.
@@ -54,6 +65,11 @@ public class AbstractRenderable implements Renderable
 	 * A buffer containing the vertices for OpenGL.
 	 */
 	protected FloatBuffer vertexBuffer = null;
+
+	/**
+	 * A buffer containing the vertices for OpenGL.
+	 */
+	protected FloatBuffer normalBuffer = null;
 
 	/**
 	 * A buffer containing the texture coordinates for OpenGL.
@@ -106,6 +122,11 @@ public class AbstractRenderable implements Renderable
 			this.fillAndBindTextureCoordinateBuffer();
 			this.textureCoordinateBuffer.clear();
 		}
+		if (this.usesNormals())
+		{
+			this.fillAndBindNormalBuffer();
+			this.normalBuffer.clear();
+		}
 	}
 
 	/**
@@ -121,6 +142,8 @@ public class AbstractRenderable implements Renderable
 		glEnableClientState(GL_VERTEX_ARRAY);
 		if (this.hasTextures())
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		if (this.usesNormals())
+			glEnableClientState(GL_NORMAL_ARRAY);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexID);
 		glVertexPointer(3, GL_FLOAT, 3 << 2, 0L);
 		if (this.hasTextures())
@@ -128,7 +151,14 @@ public class AbstractRenderable implements Renderable
 			glBindBuffer(GL_ARRAY_BUFFER, textureCoordinateID);
 			glTexCoordPointer(2, GL_FLOAT, 0, 0L);
 		}
+		if (this.usesNormals())
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, normalID);
+			glNormalPointer(GL_FLOAT, 0, 0L);
+		}
 		glDrawArrays(GL_TRIANGLES, 0, this.vertices.length * 3);
+		if (this.usesNormals())
+			glDisableClientState(GL_NORMAL_ARRAY);
 		if (this.hasTextures())
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
@@ -145,6 +175,8 @@ public class AbstractRenderable implements Renderable
 		glDeleteBuffers(vertexID);
 		if (this.hasTextures())
 			glDeleteBuffers(textureCoordinateID);
+		if (this.usesNormals())
+			glDeleteBuffers(normalID);
 	}
 
 	protected void fillAndBindVertexBuffer()
@@ -169,6 +201,17 @@ public class AbstractRenderable implements Renderable
 		glBufferData(GL_ARRAY_BUFFER, textureCoordinateBuffer, GL_STATIC_DRAW);
 	}
 
+	protected void fillAndBindNormalBuffer()
+	{
+		this.normalID = glGenBuffers();
+		this.normalBuffer = BufferUtils.createFloatBuffer(this.normals.length * 3);
+		float[] normals = Vertex.convertToFloatArray(this.normals);
+		this.normalBuffer.put(normals);
+		this.normalBuffer.flip();
+		glBindBuffer(GL_ARRAY_BUFFER, normalID);
+		glBufferData(GL_ARRAY_BUFFER, normalBuffer, GL_STATIC_DRAW);
+	}
+
 	protected boolean hasTextures()
 	{
 		return sprite != null;
@@ -178,4 +221,16 @@ public class AbstractRenderable implements Renderable
 	{
 		return this.sprite;
 	}
+
+	public Vector3f getPosition()
+	{
+		return position;
+	}
+
+	public Vector3f getSizes()
+	{
+		return sizes;
+	}
+
+	protected boolean usesNormals() { return this.normals != null; }
 }

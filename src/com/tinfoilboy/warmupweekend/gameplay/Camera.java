@@ -1,11 +1,15 @@
 package com.tinfoilboy.warmupweekend.gameplay;
 
+import com.tinfoilboy.warmupweekend.WarmupWeekend;
+import com.tinfoilboy.warmupweekend.physics.AxisAlignedBoundingBox;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector3f;
 
+import java.nio.FloatBuffer;
+
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glLight;
 import static org.lwjgl.util.glu.GLU.gluPerspective;
 
 public class Camera
@@ -18,15 +22,22 @@ public class Camera
 
 	protected Vector3f position = new Vector3f(0.0f, 0.0f, 0.0f);
 
-	public boolean movingForward = false, movingBackward = false, movingLeft = false, movingRight = false;
+	protected float boundingBoxWidth = 8.0f;
 
-	private float moveSpeed = 1.0f;
+	protected float boundingBoxHeight = 14.0f;
+
+	protected float boundingBoxDepth = 8.0f;
+
+	public boolean movingForward = false, movingBackward = false, movingLeft = false, movingRight = false, grounded = false, sprinting = false;
+
+	public AxisAlignedBoundingBox boundingBox = null;
 
 	public Camera(float fov, float nearZ, float farZ)
 	{
 		this.fov = fov;
 		this.nearZ = nearZ;
 		this.farZ = farZ;
+		this.boundingBox = new AxisAlignedBoundingBox(this, "Collider", position, boundingBoxWidth, boundingBoxHeight, boundingBoxDepth);
 	}
 
 	public void create()
@@ -38,10 +49,24 @@ public class Camera
 		glLoadIdentity();
 		glTranslatef(-position.getX(), -position.getY(), -position.getZ());
 		glRotatef(0.0f, 0.0f, 0.0f, 0.0f);
+		glEnable(GL_COLOR_MATERIAL);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		FloatBuffer ambientLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.2f, 0.2f, 0.2f, 1.0f});
+		ambientLight.flip();
+		FloatBuffer diffuseLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.4f, 0.4f, 0.4f, 1.0f});
+		diffuseLight.flip();
+		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {1.0f, 1.0f, 1.0f, 1.0f});
+		positionLight.flip();
+		glLight(GL_LIGHT0, GL_AMBIENT, ambientLight);
+		glLight(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+		glLight(GL_LIGHT0, GL_POSITION, positionLight);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_DEPTH_TEST);
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glClearColor(0.0f, 0.6f, 0.7f, 1.0f);
+		glDepthFunc(GL_LEQUAL);
+		glShadeModel(GL_SMOOTH);
+		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+		glClearColor(0.0f, 0.6f, 0.4f, 1.0f);
 	}
 
 	public void update()
@@ -50,19 +75,54 @@ public class Camera
 
 		glTranslatef(-position.getX(), -position.getY(), -position.getZ());
 
+		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {1.0f, 1.0f, 1.0f, 1.0f});
+
+		positionLight.flip();
+
+		glLight(GL_LIGHT0, GL_POSITION, positionLight);
+
 		this.checkMoving();
+
+		this.boundingBox.update();
 	}
 
 	private void checkMoving()
 	{
+		float moveSpeed;
+
+		if (sprinting)
+			moveSpeed = 200.0f;
+		else
+			moveSpeed = 100.0f;
+
+		moveSpeed *= WarmupWeekend.getInstance().frameLength;
+
 		if (movingForward)
-			this.position.z -= moveSpeed;
+		{
+			moveForward(moveSpeed);
+		}
+
 		if (movingBackward)
-			this.position.z += moveSpeed;
+		{
+			moveBackward(moveSpeed);
+		}
+
 		if (movingLeft)
-			this.position.x -= moveSpeed;
+		{
+			moveLeft(moveSpeed);
+		}
+
 		if (movingRight)
-			this.position.x += moveSpeed;
+		{
+			moveRight(moveSpeed);
+		}
+
+		// Use a gravity multiplier to do something.
+		int gravityMultiplier = 5;
+		// Apply Gravity
+		int gravity = 90 * gravityMultiplier;
+		gravity *= WarmupWeekend.getInstance().frameLength;
+		doGravity(gravity);
 	}
 
 	public void resize()
@@ -82,5 +142,203 @@ public class Camera
 	public Vector3f getPosition()
 	{
 		return position;
+	}
+
+	protected void playFootstep()
+	{
+		if (!SoundManager.footstep_left.isPlaying() && !SoundManager.footstep_right.isPlaying())
+		{
+			int footstepSound = WarmupWeekend.random.nextInt(2);
+
+			if (footstepSound == 0) SoundManager.footstep_left.playAsSoundEffect(1.0f, 4.0f, false);
+			else if (footstepSound == 1) SoundManager.footstep_right.playAsSoundEffect(1.0f, 4.0f, false);
+		}
+	}
+
+	protected void playFootstep(int whichFoot)
+	{
+		if (!SoundManager.footstep_left.isPlaying() && !SoundManager.footstep_right.isPlaying())
+		{
+			if (whichFoot == 0) SoundManager.footstep_left.playAsSoundEffect(1.0f, 4.0f, false);
+			else if (whichFoot == 1) SoundManager.footstep_right.playAsSoundEffect(1.0f, 4.0f, false);
+		}
+	}
+
+	protected void moveForward(float moveSpeed)
+	{
+		for (int z = (int) (this.position.getZ()); z > this.position.getZ() - moveSpeed - boundingBoxDepth; z--)
+		{
+			// The maximum Z you can get.
+			int maxZ = (int) (this.position.getZ() - moveSpeed - boundingBoxDepth) + 1;
+			AxisAlignedBoundingBox aabb = WarmupWeekend.getInstance().currentLevel.getAxisAlignedBoundingBoxAt(new Vector3f(this.position.getX(), this.position.getY(), z));
+			AxisAlignedBoundingBox potentialCameraBB = new AxisAlignedBoundingBox(this, "collider", new Vector3f(this.position.getX(), this.position.getY(), z), boundingBoxWidth, boundingBoxHeight, boundingBoxDepth);
+			if (aabb != null)
+			{
+				if (potentialCameraBB.colliding(aabb) && aabb.COLLIDER_TYPE.equalsIgnoreCase("collider"))
+				{
+					break;
+				}
+				else if (!potentialCameraBB.colliding(aabb) && z == maxZ)
+				{
+					if (this.grounded)
+					{
+						playFootstep();
+					}
+					this.position.z -= moveSpeed;
+					break;
+				}
+			}
+			else if (z == maxZ)
+			{
+				if (this.grounded)
+				{
+					playFootstep();
+				}
+				this.position.z -= moveSpeed;
+				break;
+			}
+		}
+	}
+
+	protected void moveBackward(float moveSpeed)
+	{
+		for (int z = (int) (this.position.getZ()); z < this.position.getZ() + moveSpeed + boundingBoxDepth; z++)
+		{
+			// The maximum Z you can get.
+			int maxZ = (int) (this.position.getZ() + moveSpeed + boundingBoxDepth) - 1;
+			AxisAlignedBoundingBox aabb = WarmupWeekend.getInstance().currentLevel.getAxisAlignedBoundingBoxAt(new Vector3f(this.position.getX(), this.position.getY(), z));
+			AxisAlignedBoundingBox potentialCameraBB = new AxisAlignedBoundingBox(this, "collider", new Vector3f(this.position.getX(), this.position.getY(), z), boundingBoxWidth, boundingBoxHeight, boundingBoxDepth);
+			if (aabb != null)
+			{
+				if (potentialCameraBB.colliding(aabb) && aabb.COLLIDER_TYPE.equalsIgnoreCase("collider"))
+				{
+					break;
+				}
+				else if (!potentialCameraBB.colliding(aabb) && z == maxZ)
+				{
+					if (this.grounded)
+					{
+						playFootstep();
+					}
+					this.position.z += moveSpeed;
+					break;
+				}
+			}
+			else if (z == maxZ)
+			{
+				if (this.grounded)
+				{
+					playFootstep();
+				}
+				this.position.z += moveSpeed;
+				break;
+			}
+		}
+	}
+
+	protected void moveLeft(float moveSpeed)
+	{
+		for (int x = (int) (this.position.getX()); x > this.position.getX() - moveSpeed - boundingBoxWidth; x--)
+		{
+			// The maximum Z you can get.
+			int maxX = (int) (this.position.getX() - moveSpeed - boundingBoxWidth) + 1;
+			AxisAlignedBoundingBox aabb = WarmupWeekend.getInstance().currentLevel.getAxisAlignedBoundingBoxAt(new Vector3f(x, this.position.getY(), this.position.getZ()));
+			AxisAlignedBoundingBox potentialCameraBB = new AxisAlignedBoundingBox(this, "collider", new Vector3f(x, this.position.getY(), this.position.getZ()), boundingBoxWidth, boundingBoxHeight, boundingBoxDepth);
+			if (aabb != null)
+			{
+				if (potentialCameraBB.colliding(aabb) && aabb.COLLIDER_TYPE.equalsIgnoreCase("collider"))
+				{
+					break;
+				}
+				else if (!potentialCameraBB.colliding(aabb) && x == maxX)
+				{
+					if (this.grounded)
+					{
+						playFootstep(0);
+					}
+					this.position.x -= moveSpeed;
+					break;
+				}
+			}
+			else if (x == maxX)
+			{
+				if (this.grounded)
+				{
+					playFootstep(0);
+				}
+				this.position.x -= moveSpeed;
+				break;
+			}
+		}
+	}
+
+	protected void moveRight(float moveSpeed)
+	{
+		for (int x = (int) (this.position.getX()); x < this.position.getX() + moveSpeed + boundingBoxWidth; x++)
+		{
+			// The maximum Z you can get.
+			int maxX = (int) (this.position.getX() + moveSpeed + boundingBoxWidth) - 1;
+			AxisAlignedBoundingBox aabb = WarmupWeekend.getInstance().currentLevel.getAxisAlignedBoundingBoxAt(new Vector3f(x, this.position.getY(), this.position.getZ()));
+			AxisAlignedBoundingBox potentialCameraBB = new AxisAlignedBoundingBox(this, "collider", new Vector3f(x, this.position.getY(), this.position.getZ()), boundingBoxWidth, boundingBoxHeight, boundingBoxDepth);
+			if (aabb != null)
+			{
+				if (potentialCameraBB.colliding(aabb) && aabb.COLLIDER_TYPE.equalsIgnoreCase("collider"))
+				{
+					break;
+				}
+				else if (!potentialCameraBB.colliding(aabb) && x == maxX)
+				{
+					if (this.grounded)
+					{
+						playFootstep(1);
+					}
+					this.position.x += moveSpeed;
+					break;
+				}
+			}
+			else if (x == maxX)
+			{
+				if (this.grounded)
+				{
+					playFootstep(1);
+				}
+				this.position.x += moveSpeed;
+				break;
+			}
+		}
+	}
+
+	protected void doGravity(int gravity)
+	{
+		for (int y = (int) (this.position.getY()); y > this.position.getY() - gravity - boundingBoxHeight; y--)
+		{
+			// The maximum Z you can get.
+			int maxY = (int) (this.position.getY() - gravity - boundingBoxHeight) + 1;
+			AxisAlignedBoundingBox aabb = WarmupWeekend.getInstance().currentLevel.getAxisAlignedBoundingBoxAt(new Vector3f(this.position.getX(), y, this.position.getZ()));
+			AxisAlignedBoundingBox potentialCameraBB = new AxisAlignedBoundingBox(this, "collider", new Vector3f(this.position.getX(), y, this.position.getZ()), boundingBoxWidth, boundingBoxHeight, boundingBoxDepth);
+			if (aabb != null)
+			{
+				if (potentialCameraBB.colliding(aabb) && aabb.COLLIDER_TYPE.equalsIgnoreCase("collider"))
+				{
+					if (!this.grounded)
+						this.grounded = true;
+					break;
+				}
+				else if (!potentialCameraBB.colliding(aabb) && y == maxY)
+				{
+					if (this.grounded)
+						this.grounded = false;
+					this.position.y -= gravity;
+					break;
+				}
+			}
+			else if (y == maxY)
+			{
+				if (this.grounded)
+					this.grounded = false;
+				this.position.y -= gravity;
+				break;
+			}
+		}
 	}
 }

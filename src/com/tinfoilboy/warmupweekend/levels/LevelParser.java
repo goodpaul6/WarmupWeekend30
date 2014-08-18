@@ -3,6 +3,7 @@ package com.tinfoilboy.warmupweekend.levels;
 import com.tinfoilboy.warmupweekend.graphics.AbstractRenderable;
 import com.tinfoilboy.warmupweekend.graphics.Cube;
 import com.tinfoilboy.warmupweekend.graphics.sprites.Sprite;
+import com.tinfoilboy.warmupweekend.physics.AxisAlignedBoundingBox;
 import com.tinfoilboy.warmupweekend.util.SpriteSheets;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -79,7 +80,7 @@ public class LevelParser
 					Sprite wallCubeSprite = null;
 					if (splitVars.length > 8)
 						 wallCubeSprite = SpriteSheets.getSpriteSheet(currentSpriteSheetName).getSprite(splitVars[8]);
-					tempLevel.addRenderables(makeWall(new Vector3f(wallX, wallY, wallZ), wallLength, wallWidth, wallHeight, wallCubeSize, cubePadding, wallCubeSprite));
+					tempLevel = makeWall(tempLevel, new Vector3f(wallX, wallY, wallZ), wallLength, wallWidth, wallHeight, wallCubeSize, cubePadding, wallCubeSprite);
 				}
 				else if (currentLine.startsWith("set_level_bounds"))
 				{
@@ -89,8 +90,8 @@ public class LevelParser
 					int boundsLength = Integer.parseInt(splitVars[3]);
 					float cubeSize = Float.parseFloat(splitVars[4]);
 					Sprite cubeSprite = SpriteSheets.getSpriteSheet(currentSpriteSheetName).getSprite(splitVars[5]);
-					tempLevel.addRenderables(addBounds(boundsWidth, boundsHeight, boundsLength, cubeSize, cubePadding, cubeSprite));
-					tempLevel.setSpawnLocation(new Vector3f(boundsWidth / 2, boundsHeight + 16, boundsLength / 2));
+					tempLevel = addBounds(tempLevel, boundsWidth, boundsHeight, boundsLength, cubeSize, cubePadding, cubeSprite);
+					tempLevel.setSpawnLocation(new Vector3f(boundsWidth / 2, -boundsHeight, boundsLength / 2));
 				}
 			}
 		}
@@ -98,16 +99,21 @@ public class LevelParser
 		return tempLevel;
 	}
 
-	protected static AbstractRenderable[] makeWall(Vector3f wallStart, int wallLength, int wallWidth, int wallHeight, float wallCubeSize, float cubePadding, Sprite cubeSprite)
+	protected static Level makeWall(Level level, Vector3f wallStart, int wallLength, int wallWidth, int wallHeight, float wallCubeSize, float cubePadding, Sprite cubeSprite)
 	{
 		ArrayList<AbstractRenderable> wallPieces = new ArrayList<AbstractRenderable>();
+		ArrayList<AxisAlignedBoundingBox> wallColliders = new ArrayList<AxisAlignedBoundingBox>();
 		for (int i = (int) wallStart.getX(); i < (int) wallStart.getX() + wallWidth; i++)
 		{
 			for (int j = (int) wallStart.getY(); j < (int) wallStart.getY() + wallHeight; j++)
 			{
 				for (int k = (int) wallStart.getZ(); k < (int) wallStart.getZ() + wallLength; k++)
 				{
-					wallPieces.add(new Cube(new Vector3f(i * wallCubeSize * cubePadding, j * wallCubeSize * cubePadding, k * wallCubeSize * cubePadding), wallCubeSize, cubeSprite));
+					Vector3f cubePosition = new Vector3f(i * wallCubeSize * cubePadding, j * wallCubeSize * cubePadding, k * wallCubeSize * cubePadding);
+					Cube cube = new Cube(cubePosition, wallCubeSize, cubeSprite);
+					AxisAlignedBoundingBox boundingBox = new AxisAlignedBoundingBox(cube, "collider", cubePosition, wallCubeSize, wallCubeSize, wallCubeSize + 4.0f);
+					wallPieces.add(cube);
+					wallColliders.add(boundingBox);
 				}
 			}
 		}
@@ -118,30 +124,57 @@ public class LevelParser
 			returnableArray[i] = renderable;
 			i++;
 		}
-		return returnableArray;
+		level.addRenderables(returnableArray);
+		AxisAlignedBoundingBox[] returnableColliders = new AxisAlignedBoundingBox[wallColliders.size()];
+		int j = 0;
+		for (AxisAlignedBoundingBox collider : wallColliders)
+		{
+			returnableColliders[j] = collider;
+			j++;
+		}
+		level.addColliders(returnableColliders);
+		return level;
 	}
 
-	protected static AbstractRenderable[] addBounds(int boundsWidth, int boundsHeight, int boundsLength, float cubeSize, float cubePadding, Sprite cubeSprite)
+	protected static Level addBounds(Level level, int boundsWidth, int boundsHeight, int boundsLength, float cubeSize, float cubePadding, Sprite cubeSprite)
 	{
 		ArrayList<AbstractRenderable> boundsPieces = new ArrayList<AbstractRenderable>();
+		ArrayList<AxisAlignedBoundingBox> boundsColliders = new ArrayList<AxisAlignedBoundingBox>();
 		for (int x = -boundsWidth; x < boundsWidth + 1; x++)
+		{
 			for (int y = -boundsHeight; y < boundsHeight + 1; y++)
+			{
 				for (int z = -boundsLength; z < boundsHeight + 1; z++)
 				{
 					if ((x == -boundsWidth || x == boundsWidth) ||
 							(y == -boundsHeight || y == boundsHeight) ||
 							(z == -boundsLength || z == boundsLength))
 					{
-						boundsPieces.add(new Cube(new Vector3f(x * cubeSize * cubePadding, y * cubeSize * cubePadding, z * cubeSize * cubePadding), cubeSize, cubeSprite));
+						Vector3f cubePosition = new Vector3f(x * cubeSize * cubePadding, y * cubeSize * cubePadding, z * cubeSize * cubePadding);
+						Cube cube = new Cube(cubePosition, cubeSize, cubeSprite);
+						AxisAlignedBoundingBox collider = new AxisAlignedBoundingBox(cube, "collider", cubePosition, cubeSize, cubeSize, cubeSize);
+						boundsColliders.add(collider);
+						boundsPieces.add(cube);
 					}
 				}
-		AbstractRenderable[] returnableArray = new AbstractRenderable[boundsPieces.size()];
+			}
+		}
+		AbstractRenderable[] returnableRenderers = new AbstractRenderable[boundsPieces.size()];
 		int i = 0;
 		for (AbstractRenderable renderable : boundsPieces)
 		{
-			returnableArray[i] = renderable;
+			returnableRenderers[i] = renderable;
 			i++;
 		}
-		return returnableArray;
+		AxisAlignedBoundingBox[] returnableColliders = new AxisAlignedBoundingBox[boundsColliders.size()];
+		int j = 0;
+		for (AxisAlignedBoundingBox collider : boundsColliders)
+		{
+			returnableColliders[j] = collider;
+			j++;
+		}
+		level.addRenderables(returnableRenderers);
+		level.addColliders(returnableColliders);
+		return level;
 	}
 }

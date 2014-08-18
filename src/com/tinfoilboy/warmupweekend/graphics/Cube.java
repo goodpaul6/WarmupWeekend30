@@ -81,6 +81,56 @@ public class Cube extends AbstractRenderable
 			new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
 			new Vertex(sizes.getX(), -sizes.getY(), sizes.getZ())
 		};
+		this.normals = new Vertex[] {
+			// Front Face 1 Normals
+			new Vertex(-1.0f, -1.0f, -1.0f),
+			new Vertex(1.0f, -1.0f, -1.0f),
+			new Vertex(1.0f, 1.0f, -1.0f),
+			// Front Face 2 Normals
+			new Vertex(-1.0f, -1.0f, -1.0f),
+			new Vertex(1.0f, 1.0f, -1.0f),
+			new Vertex(-1.0f, 1.0f, -1.0f),
+			// Back Face 1 Normals
+			new Vertex(-1.0f, -1.0f, 1.0f),
+			new Vertex(1.0f, -1.0f, 1.0f),
+			new Vertex(1.0f, 1.0f, 1.0f),
+			// Back Face 2 Normals
+			new Vertex(-1.0f, -1.0f, 1.0f),
+			new Vertex(1.0f, 1.0f, 1.0f),
+			new Vertex(-1.0f, 1.0f, 1.0f),
+			// Left Face 1 Normals
+			new Vertex(1.0f, -1.0f, -1.0f),
+			new Vertex(1.0f, 1.0f, -1.0f),
+			new Vertex(1.0f, 1.0f, 1.0f),
+			// Left Face 2 Normals
+			new Vertex(1.0f, 1.0f, 1.0f),
+			new Vertex(1.0f, -1.0f, -1.0f),
+			new Vertex(1.0f, -1.0f, 1.0f),
+			// Right Face 1 Normals
+			new Vertex(-1.0f, -1.0f, -1.0f),
+			new Vertex(-1.0f, 1.0f, -1.0f),
+			new Vertex(-1.0f, 1.0f, 1.0f),
+			// Right Face 2 Normals
+			new Vertex(-1.0f, 1.0f, 1.0f),
+			new Vertex(-1.0f, -1.0f, -1.0f),
+			new Vertex(-1.0f, -1.0f, 1.0f),
+			// Top Face 1 Normals
+			new Vertex(1.0f, 1.0f, -1.0f),
+			new Vertex(-1.0f, 1.0f, 1.0f),
+			new Vertex(-1.0f, 1.0f, -1.0f),
+			// Top Face 2 Normals
+			new Vertex(1.0f, 1.0f, -1.0f),
+			new Vertex(-1.0f, 1.0f, 1.0f),
+			new Vertex(1.0f, 1.0f, 1.0f),
+			// Bottom Face 1 Normals
+			new Vertex(1.0f, -1.0f, -1.0f),
+			new Vertex(-1.0f, -1.0f, 1.0f),
+			new Vertex(-1.0f, -1.0f, -1.0f),
+			// Bottom Face 2 Normals
+			new Vertex(1.0f, -1.0f, -1.0f),
+			new Vertex(-1.0f, -1.0f, 1.0f),
+			new Vertex(1.0f, -1.0f, 1.0f),
+		};
 		if (this.hasTextures())
 		{
 			this.textureCoordinates = new TextureCoordinate[] {

@@ -3,6 +3,8 @@ package com.tinfoilboy.warmupweekend.gameplay;
 import com.tinfoilboy.warmupweekend.WarmupWeekend;
 import org.lwjgl.input.Keyboard;
 
+import java.security.Key;
+
 import static org.lwjgl.input.Keyboard.*;
 
 public class InputHandler implements Runnable
@@ -41,16 +43,19 @@ public class InputHandler implements Runnable
 					WarmupWeekend.stop();
 					break;
 				case KEY_W:
-					WarmupWeekend.getInstance().camera.movingForward = Keyboard.getEventKeyState();
+					WarmupWeekend.getInstance().camera.movingForward = getEventKeyState();
 					break;
 				case KEY_S:
-					WarmupWeekend.getInstance().camera.movingBackward = Keyboard.getEventKeyState();
+					WarmupWeekend.getInstance().camera.movingBackward = getEventKeyState();
 					break;
 				case KEY_A:
-					WarmupWeekend.getInstance().camera.movingLeft = Keyboard.getEventKeyState();
+					WarmupWeekend.getInstance().camera.movingLeft = getEventKeyState();
 					break;
 				case KEY_D:
-					WarmupWeekend.getInstance().camera.movingRight = Keyboard.getEventKeyState();
+					WarmupWeekend.getInstance().camera.movingRight = getEventKeyState();
+					break;
+				case KEY_LSHIFT:
+					WarmupWeekend.getInstance().camera.sprinting = getEventKeyState();
 					break;
 			}
 		}

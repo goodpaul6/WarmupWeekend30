@@ -2,6 +2,7 @@ package com.tinfoilboy.warmupweekend.util;
 
 import com.google.common.io.Files;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.util.glu.MipMap;
 
@@ -62,6 +63,8 @@ public class TextureLoader
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+
+			glTexParameteri(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
 
 			if(bitsPerPixel == 4)
 			{
@@ -139,17 +142,19 @@ public class TextureLoader
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 
+			glTexParameteri(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
+
 			if(bitsPerPixel == 4)
 			{
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getWidth(), 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-				GL30.glGenerateMipmap(GL_TEXTURE_2D);
-				//MipMap.gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, image.getWidth(), image.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+				//GL30.glGenerateMipmap(GL_TEXTURE_2D);
+				MipMap.gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, image.getWidth(), image.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, imageData);
 			}
 			else
 			{
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, image.getWidth(), image.getWidth(), 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
-				GL30.glGenerateMipmap(GL_TEXTURE_2D);
-				//MipMap.gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, image.getWidth(), image.getHeight(), GL_RGB, GL_UNSIGNED_BYTE, imageData);
+				//GL30.glGenerateMipmap(GL_TEXTURE_2D);
+				MipMap.gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, image.getWidth(), image.getHeight(), GL_RGB, GL_UNSIGNED_BYTE, imageData);
 			}
 
 			imageData.clear();
