@@ -24,11 +24,11 @@ public class Camera
 
 	protected float boundingBoxWidth = 8.0f;
 
-	protected float boundingBoxHeight = 14.0f;
+	protected float boundingBoxHeight = 9.0f;
 
 	protected float boundingBoxDepth = 8.0f;
 
-	public boolean movingForward = false, movingBackward = false, movingLeft = false, movingRight = false, grounded = false, sprinting = false;
+	public boolean movingForward = false, movingBackward = false, movingLeft = false, movingRight = false, grounded = false, sprinting = false, is3D = true;
 
 	public AxisAlignedBoundingBox boundingBox = null;
 
@@ -42,31 +42,62 @@ public class Camera
 
 	public void create()
 	{
+		setup3D();
+		glEnable(GL_COLOR_MATERIAL);
+		FloatBuffer ambientLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.2f, 0.2f, 0.2f, 1.0f});
+		ambientLight.flip();
+		FloatBuffer diffuseLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.1f, 0.1f, 0.1f, 1.0f});
+		diffuseLight.flip();
+		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.0f, 1.0f, 0.0f, 1.0f});
+		positionLight.flip();
+		glLight(GL_LIGHT0, GL_AMBIENT, ambientLight);
+		glLight(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+		glLight(GL_LIGHT0, GL_POSITION, positionLight);
+		glShadeModel(GL_SMOOTH);
+		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+		glClearColor(0.0f, 0.6f, 0.4f, 1.0f);
+	}
+
+	public void setup3D()
+	{
 		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
 		glViewport(0, 0, Display.getWidth(), Display.getHeight());
 		gluPerspective(45.0f, (float) Display.getWidth() / (float) Display.getHeight(), 0.1f, 1000.0f);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		glTranslatef(-position.getX(), -position.getY(), -position.getZ());
-		glRotatef(0.0f, 0.0f, 0.0f, 0.0f);
-		glEnable(GL_COLOR_MATERIAL);
+		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		FloatBuffer ambientLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.2f, 0.2f, 0.2f, 1.0f});
-		ambientLight.flip();
-		FloatBuffer diffuseLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.4f, 0.4f, 0.4f, 1.0f});
-		diffuseLight.flip();
-		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {1.0f, 1.0f, 1.0f, 1.0f});
-		positionLight.flip();
-		glLight(GL_LIGHT0, GL_AMBIENT, ambientLight);
-		glLight(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
-		glLight(GL_LIGHT0, GL_POSITION, positionLight);
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
-		glShadeModel(GL_SMOOTH);
-		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-		glClearColor(0.0f, 0.6f, 0.4f, 1.0f);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glDepthMask(true);
+		this.is3D = true;
+	}
+
+	public void setup2D()
+	{
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glViewport(0, 0, Display.getWidth(), Display.getHeight());
+		glOrtho(0, Display.getWidth(), Display.getHeight(), 0, 1, -1);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glTranslatef(0.0f, 0.0f, 0.0f);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_LIGHT0);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		this.is3D = false;
+	}
+
+	public void switchDimension()
+	{
+		if (is3D)
+			setup2D();
+		else
+			setup3D();
 	}
 
 	public void update()
@@ -75,7 +106,7 @@ public class Camera
 
 		glTranslatef(-position.getX(), -position.getY(), -position.getZ());
 
-		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {1.0f, 1.0f, 1.0f, 1.0f});
+		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.0f, 1.0f, 0.0f, 1.0f});
 
 		positionLight.flip();
 
@@ -127,10 +158,27 @@ public class Camera
 
 	public void resize()
 	{
+		if (is3D)
+			this.resize3D();
+		else
+			this.resize2D();
+	}
+
+	public void resize3D()
+	{
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		glViewport(0, 0, Display.getWidth(), Display.getHeight());
 		gluPerspective(45.0f, (float) Display.getWidth() / (float) Display.getHeight(), 0.1f, 1000.0f);
+		glMatrixMode(GL_MODELVIEW);
+	}
+
+	public void resize2D()
+	{
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glViewport(0, 0, Display.getWidth(), Display.getHeight());
+		glOrtho(0, Display.getWidth(), Display.getHeight(), 0, 1, -1);
 		glMatrixMode(GL_MODELVIEW);
 	}
 

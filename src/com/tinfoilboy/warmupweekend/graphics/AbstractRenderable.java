@@ -135,6 +135,7 @@ public class AbstractRenderable implements Renderable
 	@Override
 	public void draw()
 	{
+		glFrontFace(GL_CCW);
 		if (!this.hasTextures())
 			glDisable(GL_TEXTURE_2D);
 		glPushMatrix();

@@ -3,14 +3,14 @@ package com.tinfoilboy.warmupweekend;
 import com.tinfoilboy.warmupweekend.gameplay.Camera;
 import com.tinfoilboy.warmupweekend.gameplay.InputHandler;
 import com.tinfoilboy.warmupweekend.gameplay.SoundManager;
-import com.tinfoilboy.warmupweekend.graphics.Quad;
+import com.tinfoilboy.warmupweekend.graphics.ModelRenderer;
 import com.tinfoilboy.warmupweekend.graphics.sprites.SpriteSheet;
+import com.tinfoilboy.warmupweekend.gui.HeadsUpDisplay;
 import com.tinfoilboy.warmupweekend.levels.Level;
 import com.tinfoilboy.warmupweekend.levels.LevelParser;
-import com.tinfoilboy.warmupweekend.model.Model;
-import com.tinfoilboy.warmupweekend.model.ModelOBJLoader;
+import com.tinfoilboy.warmupweekend.model.PositionableModel;
+import com.tinfoilboy.warmupweekend.util.ModelManager;
 import com.tinfoilboy.warmupweekend.util.SpriteSheets;
-import com.tinfoilboy.warmupweekend.util.Vertex;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Mouse;
@@ -20,7 +20,9 @@ import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
+import org.newdawn.slick.TrueTypeFont;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
@@ -30,17 +32,15 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class WarmupWeekend
 {
-	private final String TITLE = "Ludum Dare Warmup Weekend";
+	public final String TITLE = "Recalibrated 1.0.0";
 
 	private int width = 640, height = 480;
 
-	public int fps = 0;
+	public int fps = 0, displayFPS = 0;
 
 	public long lastFPSCalc = 0L, lastFrame = 0L;
 
 	public float lastFrameTime = 0.0f, frameLength = 0.0f;
-
-	private float angle = 0.0f;
 
 	private static volatile boolean running = true;
 
@@ -53,8 +53,6 @@ public class WarmupWeekend
 	public static Random random = new Random();
 
 	public InputHandler inputHandler;
-
-	public Model model = null;
 
 	public WarmupWeekend()
 	{
@@ -91,15 +89,17 @@ public class WarmupWeekend
 	{
 		try
 		{
+			Font usableFont = new Font("Helvetica", Font.PLAIN, 24);
+			font = new TrueTypeFont(usableFont, true);
 			SoundManager.init();
 			this.inputHandler = new InputHandler();
 			SpriteSheets.addSpriteSheet("scenery", new SpriteSheet(512.0f, 512.0f, new File("assets/SpriteSheets/scenery.png")).addSprite("brick", new Vector2f(0.0f, 0.0f), 128.0f, 128.0f).addSprite("lava", new Vector2f(1.0f, 0.0f), 128.0f, 128.0f));
 			this.currentLevel = LevelParser.parseLevel(new File("assets/levels/test.level"));
 			this.camera.setPosition(this.currentLevel.spawnLocation);
 			this.camera.update();
-			this.model = ModelOBJLoader.loadModel(new File("assets/models/zombie.obj"));
-			this.model.init();
-			this.model.setPosition(new Vector3f(camera.getPosition().getX(), -380.0f, camera.getPosition().getZ() - 60.0f));
+			ModelRenderer.addModel(new PositionableModel(ModelManager.ZOMBIE, new Vector3f(-10.0f, -390.0f, -20.0f)));
+			ModelRenderer.addModel(new PositionableModel(ModelManager.ZOMBIE, new Vector3f(0.0f, -390.0f, -20.0f)));
+			ModelRenderer.addModel(new PositionableModel(ModelManager.ZOMBIE, new Vector3f(10.0f, -390.0f, -20.0f)));
 		} catch (IOException e)
 		{
 			e.printStackTrace();
@@ -117,7 +117,7 @@ public class WarmupWeekend
 			Display.update();
 		}
 
-		model.dispose();
+		ModelRenderer.dispose();
 
 		currentLevel.disposeLevel();
 
@@ -132,18 +132,24 @@ public class WarmupWeekend
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		if (!camera.is3D)
+			this.camera.switchDimension();
+
 		glDisable(GL_TEXTURE_2D);
-		model.render();
+		ModelRenderer.drawModels();
 		glEnable(GL_TEXTURE_2D);
 
 		currentLevel.drawLevel();
+
+		if (camera.is3D)
+			this.camera.switchDimension();
+
+		HeadsUpDisplay.render();
 	}
 
 	private void update()
 	{
 		this.camera.update();
-
-		this.model.update();
 
 		updateFPS();
 
@@ -179,6 +185,7 @@ public class WarmupWeekend
 		lastFrameTime = Sys.getTime();
 		if (this.getTime() - lastFPSCalc > 1000)
 		{
+			displayFPS = fps;
 			fps = 0;
 			lastFPSCalc += 1000;
 		}

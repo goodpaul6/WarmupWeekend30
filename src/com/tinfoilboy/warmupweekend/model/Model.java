@@ -17,8 +17,6 @@ public class Model implements IModel
 
 	public int normalID = 0;
 
-	public float angle = 0.0f;
-
 	public FloatBuffer vertexBuffer;
 
 	public FloatBuffer normalBuffer;
@@ -67,16 +65,13 @@ public class Model implements IModel
 	public void render()
 	{
 		glPushMatrix();
-		glTranslatef(position.getX(), position.getY(), position.getZ());
-		glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-		glColor3f(1.0f, 0.5f, 0.3f);
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);
-			glBindBuffer(GL_ARRAY_BUFFER, vertexID);
-			glVertexPointer(3, GL_FLOAT, 0, 0L);
-			glBindBuffer(GL_ARRAY_BUFFER, vertexID);
-			glNormalPointer(GL_FLOAT, 0, 0L);
-			glDrawArrays(GL_TRIANGLES, 0, this.faces.size() * 3);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexID);
+		glVertexPointer(3, GL_FLOAT, 0, 0L);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexID);
+		glNormalPointer(GL_FLOAT, 0, 0L);
+		glDrawArrays(GL_TRIANGLES, 0, this.faces.size() * 3);
 		glDisableClientState(GL_NORMAL_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -90,7 +85,6 @@ public class Model implements IModel
 	@Override
 	public void update()
 	{
-		angle += 1.0f;
 	}
 
 	/**

@@ -42,7 +42,7 @@ public class SpriteSheet
 	{
 		this.WIDTH = WIDTH;
 		this.HEIGHT = HEIGHT;
-		this.SPRITE_SHEET_TEXTURE = TextureLoader.loadImageData(textureFile, GL_CLAMP, GL_NEAREST);
+		this.SPRITE_SHEET_TEXTURE = TextureLoader.loadImageData(textureFile, GL_CLAMP, GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST);
 	}
 
 	/**

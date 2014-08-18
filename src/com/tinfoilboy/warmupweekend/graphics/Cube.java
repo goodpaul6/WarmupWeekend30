@@ -49,37 +49,37 @@ public class Cube extends AbstractRenderable
 			new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
 			new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
 			// Left Face 1
+			new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
 			new Vertex(sizes.getX(), -sizes.getY(), -sizes.getZ()),
 			new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
-			new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
 			// Left Face 2
 			new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
-			new Vertex(sizes.getX(), -sizes.getY(), -sizes.getZ()),
 			new Vertex(sizes.getX(), -sizes.getY(), sizes.getZ()),
+			new Vertex(sizes.getX(), -sizes.getY(), -sizes.getZ()),
 			// Right Face 1
-			new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
-			new Vertex(-sizes.getX(), sizes.getY(), -sizes.getZ()),
 			new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
+			new Vertex(-sizes.getX(), sizes.getY(), -sizes.getZ()),
+			new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
 			// Right Face 2
 			new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
 			new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
 			new Vertex(-sizes.getX(), -sizes.getY(), sizes.getZ()),
 			// Top Face 1
-			new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
 			new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
+			new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
 			new Vertex(-sizes.getX(), sizes.getY(), -sizes.getZ()),
 			// Top Face 2
-			new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
 			new Vertex(-sizes.getX(), sizes.getY(), sizes.getZ()),
 			new Vertex(sizes.getX(), sizes.getY(), sizes.getZ()),
+			new Vertex(sizes.getX(), sizes.getY(), -sizes.getZ()),
 			// Bottom Face 1
 			new Vertex(sizes.getX(), -sizes.getY(), sizes.getZ()),
 			new Vertex(-sizes.getX(), -sizes.getY(), sizes.getZ()),
 			new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
 			// Bottom Face 2
 			new Vertex(sizes.getX(), -sizes.getY(), -sizes.getZ()),
-			new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ()),
-			new Vertex(sizes.getX(), -sizes.getY(), sizes.getZ())
+			new Vertex(sizes.getX(), -sizes.getY(), sizes.getZ()),
+			new Vertex(-sizes.getX(), -sizes.getY(), -sizes.getZ())
 		};
 		this.normals = new Vertex[] {
 			// Front Face 1 Normals
@@ -129,7 +129,7 @@ public class Cube extends AbstractRenderable
 			// Bottom Face 2 Normals
 			new Vertex(1.0f, -1.0f, -1.0f),
 			new Vertex(-1.0f, -1.0f, 1.0f),
-			new Vertex(1.0f, -1.0f, 1.0f),
+			new Vertex(1.0f, 1.0f, 1.0f),
 		};
 		if (this.hasTextures())
 		{
