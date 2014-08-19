@@ -2,8 +2,10 @@ package com.tinfoilboy.warmupweekend.levels;
 
 import com.tinfoilboy.warmupweekend.Static;
 import com.tinfoilboy.warmupweekend.graphics.AbstractRenderable;
+import com.tinfoilboy.warmupweekend.graphics.VBOBatcher;
 import com.tinfoilboy.warmupweekend.physics.AxisAlignedBoundingBox;
 import com.tinfoilboy.warmupweekend.util.Culling;
+import com.tinfoilboy.warmupweekend.util.PrimitiveCoordinates;
 import org.lwjgl.util.vector.Vector3f;
 
 import static com.tinfoilboy.warmupweekend.Static.RENDER_DISTANCE;
@@ -22,6 +24,8 @@ public class Level
 	 * The name of this level.
 	 * */
 	public String levelName = "";
+
+	public ArrayList<PrimitiveCoordinates> levelGeoData = new ArrayList<PrimitiveCoordinates>();
 
 	/**
 	 * An array list containing the renderable for the level.

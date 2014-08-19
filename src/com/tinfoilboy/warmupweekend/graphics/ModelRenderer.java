@@ -1,10 +1,12 @@
 package com.tinfoilboy.warmupweekend.graphics;
 
 import com.tinfoilboy.warmupweekend.model.PositionableModel;
-import com.tinfoilboy.warmupweekend.util.ModelManager;
+import com.tinfoilboy.warmupweekend.util.Culling;
+import org.lwjgl.util.vector.Vector3f;
 
 import java.util.ArrayList;
 
+import static com.tinfoilboy.warmupweekend.Static.RENDER_DISTANCE;
 import static org.lwjgl.opengl.GL11.*;
 
 public class ModelRenderer
@@ -20,19 +22,21 @@ public class ModelRenderer
 	{
 		for (PositionableModel positionableModel : models)
 		{
-			glPushMatrix();
+			if (Culling.shouldShow(positionableModel.position, new Vector3f(8.0f, 8.0f, 8.0f), RENDER_DISTANCE))
+			{
+				glPushMatrix();
 				glTranslatef(positionableModel.position.getX(), positionableModel.position.getY(), positionableModel.position.getZ());
 				glRotatef(positionableModel.rotation.getX(), 0.0f, 1.0f, 0.0f);
 				glRotatef(positionableModel.rotation.getY(), 1.0f, 0.0f, 0.0f);
 				glRotatef(positionableModel.rotation.getZ(), 0.0f, 0.0f, 1.0f);
 				positionableModel.model.render();
-			glPopMatrix();
+				glPopMatrix();
+			}
 		}
 	}
 
 	public static void dispose()
 	{
-		ModelManager.dispose();
 		models.clear();
 	}
 }

@@ -2,9 +2,13 @@ package com.tinfoilboy.warmupweekend.levels;
 
 import com.tinfoilboy.warmupweekend.graphics.AbstractRenderable;
 import com.tinfoilboy.warmupweekend.graphics.Cube;
+import com.tinfoilboy.warmupweekend.graphics.VBOBatcher;
 import com.tinfoilboy.warmupweekend.graphics.sprites.Sprite;
 import com.tinfoilboy.warmupweekend.physics.AxisAlignedBoundingBox;
+import com.tinfoilboy.warmupweekend.util.CreatePrimitiveFactory;
+import com.tinfoilboy.warmupweekend.util.PrimitiveCoordinates;
 import com.tinfoilboy.warmupweekend.util.SpriteSheets;
+import com.tinfoilboy.warmupweekend.util.Vertex;
 import org.lwjgl.util.vector.Vector3f;
 
 import java.io.BufferedReader;
@@ -12,6 +16,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class LevelParser
 {
@@ -53,13 +58,17 @@ public class LevelParser
 					float cubeZ = Float.parseFloat(splitVars[3]);
 					float cubeSize = Float.parseFloat(splitVars[4]);
 					if (splitVars.length <= 5)
-						tempLevel.addRenderable(new Cube(new Vector3f(cubeX, cubeY, cubeZ), cubeSize));
+					{
+						tempLevel.addRenderable(new Cube(new Vector3f(cubeX, cubeY, cubeZ), cubeSize, true));
+					}
 					else
 					{
-						System.out.println(currentSpriteSheetName);
 						if (!currentSpriteSheetName.isEmpty() && SpriteSheets.getSpriteSheet(currentSpriteSheetName.toLowerCase()).getSprite(splitVars[5]) != null)
 						{
-							tempLevel.addRenderable(new Cube(new Vector3f(cubeX * cubeSize * cubePadding, cubeY * cubeSize * cubePadding, cubeZ * cubeSize * cubePadding), cubeSize, SpriteSheets.getSpriteSheet(currentSpriteSheetName).getSprite(splitVars[5])));
+							//tempLevel.addRenderable(new Cube(new Vector3f(cubeX * cubeSize * cubePadding, cubeY * cubeSize * cubePadding, cubeZ * cubeSize * cubePadding), cubeSize, SpriteSheets.getSpriteSheet(currentSpriteSheetName).getSprite(splitVars[5]), true));
+							PrimitiveCoordinates coordinates = CreatePrimitiveFactory.makeCube(new Vector3f(cubeX, cubeY, cubeZ), new Vector3f(cubeSize, cubeSize, cubeSize), SpriteSheets.getSpriteSheet(currentSpriteSheetName).getSprite(splitVars[5]));
+							tempLevel.levelGeoData.add(coordinates);
+							//VBOBatcher.addVerticesWithTextureCoordinatesAndNormals(coordinates.vertices, coordinates.textureCoordinates, coordinates.normals);
 						}
 						else
 						{
@@ -110,9 +119,12 @@ public class LevelParser
 				for (int k = (int) wallStart.getZ(); k < (int) wallStart.getZ() + wallLength; k++)
 				{
 					Vector3f cubePosition = new Vector3f(i * wallCubeSize * cubePadding, j * wallCubeSize * cubePadding, k * wallCubeSize * cubePadding);
-					Cube cube = new Cube(cubePosition, wallCubeSize, cubeSprite);
-					AxisAlignedBoundingBox boundingBox = new AxisAlignedBoundingBox(cube, "collider", cubePosition, wallCubeSize, wallCubeSize, wallCubeSize + 4.0f);
-					wallPieces.add(cube);
+					//Cube cube = new Cube(cubePosition, wallCubeSize, cubeSprite, true);
+					PrimitiveCoordinates coordinates = CreatePrimitiveFactory.makeCube(cubePosition, new Vector3f(wallCubeSize, wallCubeSize, wallCubeSize), cubeSprite);
+					level.levelGeoData.add(coordinates);
+					//VBOBatcher.addVerticesWithTextureCoordinatesAndNormals(coordinates.vertices, coordinates.textureCoordinates, coordinates.normals);
+					AxisAlignedBoundingBox boundingBox = new AxisAlignedBoundingBox(null, "collider", cubePosition, wallCubeSize, wallCubeSize, wallCubeSize + 4.0f);
+					//wallPieces.add(cube);
 					wallColliders.add(boundingBox);
 				}
 			}
@@ -151,10 +163,13 @@ public class LevelParser
 							(z == -boundsLength || z == boundsLength))
 					{
 						Vector3f cubePosition = new Vector3f(x * cubeSize * cubePadding, y * cubeSize * cubePadding, z * cubeSize * cubePadding);
-						Cube cube = new Cube(cubePosition, cubeSize, cubeSprite);
-						AxisAlignedBoundingBox collider = new AxisAlignedBoundingBox(cube, "collider", cubePosition, cubeSize, cubeSize, cubeSize);
+						//Cube cube = new Cube(cubePosition, cubeSize, cubeSprite, true);
+						PrimitiveCoordinates coordinates = CreatePrimitiveFactory.makeCube(cubePosition, new Vector3f(cubeSize, cubeSize, cubeSize), cubeSprite);
+						level.levelGeoData.add(coordinates);
+						//VBOBatcher.addVerticesWithTextureCoordinatesAndNormals(coordinates.vertices, coordinates.textureCoordinates, coordinates.normals);
+						AxisAlignedBoundingBox collider = new AxisAlignedBoundingBox(null, "collider", cubePosition, cubeSize, cubeSize, cubeSize);
 						boundsColliders.add(collider);
-						boundsPieces.add(cube);
+						//boundsPieces.add(cube);
 					}
 				}
 			}

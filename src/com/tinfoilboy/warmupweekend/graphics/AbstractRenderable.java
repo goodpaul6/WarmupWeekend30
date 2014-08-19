@@ -57,6 +57,11 @@ public class AbstractRenderable implements Renderable
 	protected Vector3f sizes = new Vector3f(0.0f, 0.0f, 0.0f);
 
 	/**
+	 * Should this object be static? (positions offset the vertices, e.t.c.)
+	 * */
+	protected boolean staticObject = false;
+
+	/**
 	 * The optional sprite associated with this renderable object.
 	 */
 	protected Sprite sprite = null;
@@ -106,6 +111,40 @@ public class AbstractRenderable implements Renderable
 		this.init();
 	}
 
+	public AbstractRenderable(Vector3f position, float size, boolean staticObject)
+	{
+		this.position = position;
+		this.sizes = new Vector3f(size, size, size);
+		this.staticObject = staticObject;
+		this.init();
+	}
+
+	public AbstractRenderable(Vector3f position, Vector3f sizes, boolean staticObject)
+	{
+		this.position = position;
+		this.sizes = sizes;
+		this.staticObject = staticObject;
+		this.init();
+	}
+
+	public AbstractRenderable(Vector3f position, float size, Sprite sprite, boolean staticObject)
+	{
+		this.position = position;
+		this.sizes = new Vector3f(size, size, size);
+		this.sprite = sprite;
+		this.staticObject = staticObject;
+		this.init();
+	}
+
+	public AbstractRenderable(Vector3f position, Vector3f sizes, Sprite sprite, boolean staticObject)
+	{
+		this.position = position;
+		this.sizes = sizes;
+		this.sprite = sprite;
+		this.staticObject = staticObject;
+		this.init();
+	}
+
 	@Override
 	public void beforeInit()
 	{
@@ -135,18 +174,22 @@ public class AbstractRenderable implements Renderable
 	@Override
 	public void draw()
 	{
-		glFrontFace(GL_CCW);
+		glFrontFace(GL_CW);
 		if (!this.hasTextures())
 			glDisable(GL_TEXTURE_2D);
 		glPushMatrix();
-		glTranslatef(position.getX(), position.getY(), position.getZ());
+		if (!this.staticObject)
+		{
+			System.out.println("Yes!");
+			glTranslatef(position.getX(), position.getY(), position.getZ());
+		}
 		glEnableClientState(GL_VERTEX_ARRAY);
 		if (this.hasTextures())
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		if (this.usesNormals())
 			glEnableClientState(GL_NORMAL_ARRAY);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexID);
-		glVertexPointer(3, GL_FLOAT, 3 << 2, 0L);
+		glVertexPointer(3, GL_FLOAT, 0, 0L);
 		if (this.hasTextures())
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, textureCoordinateID);

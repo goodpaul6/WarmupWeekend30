@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Class-Path: jars/lwjgl.jar jars/lwjgl_util.jar jars/slick-util.jar jar
+ s/guava-17.0.jar
+Main-Class: com.tinfoilboy.warmupweekend.WarmupWeekend
+

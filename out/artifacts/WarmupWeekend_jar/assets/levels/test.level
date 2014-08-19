@@ -1,0 +1,10 @@
+// The name of this level.
+name TestLevel
+// The author of this level.
+author Tinfoilboy
+
+// Set the sprite sheet currently in use.
+current_sheet scenery
+// Set the bounds of this level to be the width, height, and length of 40, 40, and 40, bounding cube size, as well as a sprite to be used for bound cubes.
+set_level_bounds 50 50 50 4.0f brick
+cube 0.0f -45.0f 0.0f 4.0f brick

@@ -22,6 +22,11 @@ public class TextureCoordinate
 		return v;
 	}
 
+	public static float[] convertToFloatArray(TextureCoordinate textureCoordinate)
+	{
+		return new float[] { textureCoordinate.getU(), textureCoordinate.getV() };
+	}
+
 	public static float[] convertToFloatArray(TextureCoordinate[] textureCoordinates)
 	{
 		// Using an ArrayList.

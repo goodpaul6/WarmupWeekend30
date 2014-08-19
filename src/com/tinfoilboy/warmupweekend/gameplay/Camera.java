@@ -24,11 +24,11 @@ public class Camera
 
 	protected float boundingBoxWidth = 8.0f;
 
-	protected float boundingBoxHeight = 9.0f;
+	protected float boundingBoxHeight = 7.0f;
 
 	protected float boundingBoxDepth = 8.0f;
 
-	public boolean movingForward = false, movingBackward = false, movingLeft = false, movingRight = false, grounded = false, sprinting = false, is3D = true;
+	public boolean movingForward = false, movingBackward = false, movingLeft = false, movingRight = false, grounded = false, wasGrounded = false, sprinting = false, is3D = true;
 
 	public AxisAlignedBoundingBox boundingBox = null;
 
@@ -48,7 +48,7 @@ public class Camera
 		ambientLight.flip();
 		FloatBuffer diffuseLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.1f, 0.1f, 0.1f, 1.0f});
 		diffuseLight.flip();
-		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.0f, 1.0f, 0.0f, 1.0f});
+		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.0f, 1.0f, 0.0f, 0.5f});
 		positionLight.flip();
 		glLight(GL_LIGHT0, GL_AMBIENT, ambientLight);
 		glLight(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
@@ -70,8 +70,6 @@ public class Camera
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
 		glDepthMask(true);
 		this.is3D = true;
 	}
@@ -88,7 +86,6 @@ public class Camera
 		glDisable(GL_LIGHTING);
 		glDisable(GL_LIGHT0);
 		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
 		this.is3D = false;
 	}
 
@@ -106,7 +103,7 @@ public class Camera
 
 		glTranslatef(-position.getX(), -position.getY(), -position.getZ());
 
-		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.0f, 1.0f, 0.0f, 1.0f});
+		FloatBuffer positionLight = BufferUtils.createFloatBuffer(4).put(new float[] {0.0f, 0.0f, 1.0f, 1.0f});
 
 		positionLight.flip();
 
@@ -151,8 +148,9 @@ public class Camera
 		// Use a gravity multiplier to do something.
 		int gravityMultiplier = 5;
 		// Apply Gravity
-		int gravity = 90 * gravityMultiplier;
+		int gravity = 80 * gravityMultiplier;
 		gravity *= WarmupWeekend.getInstance().frameLength;
+		gravity -= WarmupWeekend.getInstance().frameLength / 4;
 		doGravity(gravity);
 	}
 
@@ -358,7 +356,8 @@ public class Camera
 
 	protected void doGravity(int gravity)
 	{
-		for (int y = (int) (this.position.getY()); y > this.position.getY() - gravity - boundingBoxHeight; y--)
+		this.wasGrounded = grounded;
+		for (int y = (int) (this.position.getY()); y > (int) (this.position.getY() - gravity - boundingBoxHeight); y--)
 		{
 			// The maximum Z you can get.
 			int maxY = (int) (this.position.getY() - gravity - boundingBoxHeight) + 1;
@@ -368,22 +367,19 @@ public class Camera
 			{
 				if (potentialCameraBB.colliding(aabb) && aabb.COLLIDER_TYPE.equalsIgnoreCase("collider"))
 				{
-					if (!this.grounded)
-						this.grounded = true;
+					if (!this.grounded) this.grounded = true;
 					break;
 				}
-				else if (!potentialCameraBB.colliding(aabb) && y == maxY)
+				else if (y == maxY)
 				{
-					if (this.grounded)
-						this.grounded = false;
+					if (this.grounded) this.grounded = false;
 					this.position.y -= gravity;
 					break;
 				}
 			}
 			else if (y == maxY)
 			{
-				if (this.grounded)
-					this.grounded = false;
+				if (this.grounded) this.grounded = false;
 				this.position.y -= gravity;
 				break;
 			}

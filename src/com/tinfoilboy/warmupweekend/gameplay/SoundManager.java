@@ -12,10 +12,14 @@ public class SoundManager
 
 	public static Audio footstep_right;
 
+	public static Audio hit_ground;
+
 	public static void init() throws IOException
 	{
 		footstep_left = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("assets/sounds/player/footstep_1.wav"));
 
 		footstep_right = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("assets/sounds/player/footstep_2.wav"));
+
+		hit_ground = AudioLoader.getAudio("WAV", ResourceLoader.getResourceAsStream("assets/sounds/player/hit_ground.wav"));
 	}
 }

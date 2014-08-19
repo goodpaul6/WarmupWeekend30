@@ -69,7 +69,7 @@ public class Model implements IModel
 		glEnableClientState(GL_NORMAL_ARRAY);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexID);
 		glVertexPointer(3, GL_FLOAT, 0, 0L);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexID);
+		glBindBuffer(GL_ARRAY_BUFFER, normalID);
 		glNormalPointer(GL_FLOAT, 0, 0L);
 		glDrawArrays(GL_TRIANGLES, 0, this.faces.size() * 3);
 		glDisableClientState(GL_NORMAL_ARRAY);
