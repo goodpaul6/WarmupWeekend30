@@ -130,7 +130,7 @@ public class VBOBatcher
 		if (batchID == 0)
 			batchID = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, batchID);
-		glBufferData(GL_ARRAY_BUFFER, batchBuffer, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, batchBuffer, GL_STATIC_DRAW);
 		draw();
 		vertices.clear();
 		normals.clear();
