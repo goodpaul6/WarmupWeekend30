@@ -5,7 +5,6 @@ import com.tinfoilboy.warmupweekend.gameplay.InputHandler;
 import com.tinfoilboy.warmupweekend.gameplay.SoundManager;
 import com.tinfoilboy.warmupweekend.graphics.ModelRenderer;
 import com.tinfoilboy.warmupweekend.graphics.VBOBatcher;
-import com.tinfoilboy.warmupweekend.graphics.sprites.Sprite;
 import com.tinfoilboy.warmupweekend.graphics.sprites.SpriteSheet;
 import com.tinfoilboy.warmupweekend.gui.HeadsUpDisplay;
 import com.tinfoilboy.warmupweekend.levels.Level;
@@ -14,11 +13,9 @@ import com.tinfoilboy.warmupweekend.model.PositionableModel;
 import com.tinfoilboy.warmupweekend.util.*;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.openal.AL;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
@@ -56,7 +53,7 @@ public class WarmupWeekend
 
 	public InputHandler inputHandler;
 
-	private VBOBatcher batcher = new VBOBatcher();
+	private VBOBatcher batcher;
 
 	public WarmupWeekend()
 	{
@@ -104,6 +101,8 @@ public class WarmupWeekend
 			ModelRenderer.addModel(new PositionableModel(ModelManager.ZOMBIE, new Vector3f(-10.0f, -394.0f, -20.0f)));
 			ModelRenderer.addModel(new PositionableModel(ModelManager.ZOMBIE, new Vector3f(0.0f, -394.0f, -20.0f)));
 			ModelRenderer.addModel(new PositionableModel(ModelManager.ZOMBIE, new Vector3f(10.0f, -394.0f, -20.0f)));
+			System.out.println(currentLevel.levelGeoData.size() * 8);
+			this.batcher = new VBOBatcher(currentLevel.levelGeoData.size() * 8);
 		} catch (IOException e)
 		{
 			e.printStackTrace();
@@ -147,12 +146,17 @@ public class WarmupWeekend
 
 		//currentLevel.drawLevel();
 
-		//glBindTexture(GL_TEXTURE_2D, SpriteSheets.getSpriteSheet("scenery").getSpriteSheetTexture().TEXTURE_ID);
+		glBindTexture(GL_TEXTURE_2D, SpriteSheets.getSpriteSheet("scenery").getSpriteSheetTexture().TEXTURE_ID);
 
 		batcher.begin();
-		for (PrimitiveCoordinates coordinates : currentLevel.levelGeoData)
+		for (int i = 0; i < currentLevel.levelGeoData.size(); i++)
 		{
-			batcher.addVerticesWithTextureCoordinatesAndNormals(coordinates.vertices, coordinates.textureCoordinates, coordinates.normals);
+			PrimitiveCoordinates coordinates = currentLevel.levelGeoData.get(i);
+			//batcher.addVerticesWithTextureCoordinatesAndNormals(coordinates.vertices, coordinates.textureCoordinates, coordinates.normals);
+			for (int j = 0; j < coordinates.vertices.length; j++)
+			{
+				batcher.addVertexWithTextureCoordinateAndNormal(coordinates.vertices[j], coordinates.textureCoordinates[j], coordinates.normals[j]);
+			}
 		}
 		batcher.end();
 

@@ -32,7 +32,7 @@ public class Vertex
 	{
 		// Using an ArrayList.
 		ArrayList<Float> floats = new ArrayList<Float>();
-		// For every vertex, add their coordinates to the arraylist.
+		// For every vertex, add their coordinates to the array list.
 		for (int i = 0; i < vertices.length; i++)
 		{
 			floats.add(vertices[i].x);

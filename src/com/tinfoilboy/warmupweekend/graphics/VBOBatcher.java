@@ -18,9 +18,11 @@ public class VBOBatcher
 	 * */
 	public int batchID = 0;
 
-	public int batchLimit = 1024;
+	public int batchLimit = 0;
 
 	public int currentBatchNumbers = 0;
+
+	private boolean hasMadeData = false;
 
  	/**
 	 * An array list of vertices.
@@ -40,13 +42,39 @@ public class VBOBatcher
  	/**
 	 * The buffer for the vertices.
 	 * */
-	public FloatBuffer batchBuffer = BufferUtils.createFloatBuffer(batchLimit);
+	public FloatBuffer batchBuffer;
 
 	public static VBOBatcher instance = null;
 
 	public VBOBatcher()
 	{
-		this.instance = this;
+		this(1024);
+	}
+
+	public VBOBatcher(int batchLimit)
+	{
+		this.batchLimit = batchLimit;
+		this.batchBuffer = BufferUtils.createFloatBuffer(batchLimit);
+		instance = this;
+	}
+
+	/**
+	 * Add a vertex with texture coordinates, and normals to the buffer.
+	 * */
+	public void addVertexWithTextureCoordinateAndNormal(Vertex vert, TextureCoordinate textureCoord, Vertex norm)
+	{
+		vertices.addAll(Arrays.asList(vert));
+		textureCoordinates.addAll(Arrays.asList(textureCoord));
+		normals.addAll(Arrays.asList(norm));
+		float[] v = Vertex.convertToFloatArray(vert);
+		float[] t = TextureCoordinate.convertToFloatArray(textureCoord);
+		float[] n = Vertex.convertToFloatArray(norm);
+		if (currentBatchNumbers + 8 > batchLimit)
+		{
+			flush();
+		}
+		currentBatchNumbers += v.length + n.length + t.length;
+		batchBuffer.put(v).put(n).put(t);
 	}
 
 	/**
@@ -61,14 +89,12 @@ public class VBOBatcher
 		float[] t = TextureCoordinate.convertToFloatArray(textureCoords);
 		float[] n = Vertex.convertToFloatArray(norms);
 		currentBatchNumbers += v.length + t.length + n.length;
-		if (currentBatchNumbers < batchLimit)
-		{
-			batchBuffer.put(v).put(n).put(t);
-		}
-		else
+		System.out.println(t.length);
+		if (currentBatchNumbers + 8 > batchLimit)
 		{
 			flush();
 		}
+		batchBuffer.put(v).put(n).put(t);
 	}
 
 	public void begin()
@@ -87,10 +113,10 @@ public class VBOBatcher
 		glEnableClientState(GL_NORMAL_ARRAY);
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, batchID);
-			glVertexPointer(3, GL_FLOAT, 0, 0);
-			glNormalPointer(GL_FLOAT, 0, 3);
-			glTexCoordPointer(2, GL_FLOAT, 0, 6);
-			glDrawArrays(GL_TRIANGLES, 0, vertices.size() * 3);
+			glVertexPointer(3, GL_FLOAT, 32, 0);
+			glNormalPointer(GL_FLOAT, 32, 12);
+			glTexCoordPointer(2, GL_FLOAT, 32, 24);
+			glDrawArrays(GL_TRIANGLES, 0, currentBatchNumbers);
 		}
 		glDisableClientState(GL_NORMAL_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -104,7 +130,7 @@ public class VBOBatcher
 		if (batchID == 0)
 			batchID = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, batchID);
-		glBufferData(GL_ARRAY_BUFFER, batchBuffer, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, batchBuffer, GL_STREAM_DRAW);
 		draw();
 		vertices.clear();
 		normals.clear();
